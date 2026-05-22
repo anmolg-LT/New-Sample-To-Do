@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../lambdatest-setup.js'
 
 const addItem = async (page, text, isoDate) => {
   await page.getByPlaceholder('What needs to be done?').fill(text)

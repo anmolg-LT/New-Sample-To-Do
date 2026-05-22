@@ -13,6 +13,17 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      // Project name format parsed by lambdatest-setup.js:
+      //   "<browser>:<version>:<platform>@lambdatest"
+      // Examples: "pw-chromium:latest:macOS Sonoma@lambdatest"
+      //           "pw-firefox:latest:Windows 11@lambdatest"
+      name: 'chrome:latest:Windows 11@lambdatest',
+      use: {},
+    },
   ],
 })
