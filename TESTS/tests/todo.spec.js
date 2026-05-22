@@ -2,8 +2,13 @@ import { test, expect } from '../lambdatest-setup.js'
 
 const addItem = async (page, text, isoDate) => {
   await page.getByPlaceholder('What needs to be done?').fill(text)
-  if (isoDate) await page.getByLabel('Due date').fill(isoDate)
+  await page.waitForTimeout(1000)
+  if (isoDate) {
+    await page.getByLabel('Due date').fill(isoDate)
+    await page.waitForTimeout(1000)
+  }
   await page.getByRole('button', { name: 'Add' }).click()
+  await page.waitForTimeout(1000)
 }
 
 const filterButton = (page, name) =>
@@ -14,6 +19,7 @@ const itemByText = (page, text) =>
 
 test.beforeEach(async ({ page }) => {
   await page.goto('./')
+  await page.waitForTimeout(1000)
 })
 
 test('shows the empty state and zeroed counters on first load', async ({ page }) => {
@@ -52,6 +58,7 @@ test('toggling complete strikes through the item and decrements remaining', asyn
 
   const item = itemByText(page, 'Read book')
   await item.getByRole('checkbox').check()
+  await page.waitForTimeout(1000)
 
   await expect(item).toHaveClass(/done/)
   await expect(page.locator('.topbar-stats')).toContainText('0 remaining')
@@ -63,12 +70,15 @@ test('Active and Completed filters limit the visible list', async ({ page }) => 
   await addItem(page, 'Task B')
 
   await itemByText(page, 'Task A').getByRole('checkbox').check()
+  await page.waitForTimeout(1000)
 
   await filterButton(page, 'Active').click()
+  await page.waitForTimeout(1000)
   await expect(itemByText(page, 'Task B')).toBeVisible()
   await expect(itemByText(page, 'Task A')).toHaveCount(0)
 
   await filterButton(page, 'Completed').click()
+  await page.waitForTimeout(1000)
   await expect(itemByText(page, 'Task A')).toBeVisible()
   await expect(itemByText(page, 'Task B')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Clear completed' })).toBeVisible()
@@ -77,14 +87,17 @@ test('Active and Completed filters limit the visible list', async ({ page }) => 
 test('Clear completed button is hidden outside the Completed filter', async ({ page }) => {
   await addItem(page, 'Task A')
   await itemByText(page, 'Task A').getByRole('checkbox').check()
+  await page.waitForTimeout(1000)
 
   // Still on "All" — button should not be present
   await expect(page.getByRole('button', { name: 'Clear completed' })).toHaveCount(0)
 
   await filterButton(page, 'Active').click()
+  await page.waitForTimeout(1000)
   await expect(page.getByRole('button', { name: 'Clear completed' })).toHaveCount(0)
 
   await filterButton(page, 'Completed').click()
+  await page.waitForTimeout(1000)
   await expect(page.getByRole('button', { name: 'Clear completed' })).toBeVisible()
 })
 
@@ -94,6 +107,7 @@ test('deletes an item', async ({ page }) => {
   const item = itemByText(page, 'Temporary')
   await expect(item).toBeVisible()
   await item.getByRole('button', { name: 'Delete' }).click()
+  await page.waitForTimeout(1000)
   await expect(item).toHaveCount(0)
 })
 
@@ -101,6 +115,7 @@ test('items persist across a page reload (sessionStorage)', async ({ page }) => 
   await addItem(page, 'Persistent task')
 
   await page.reload()
+  await page.waitForTimeout(1000)
   await expect(itemByText(page, 'Persistent task')).toBeVisible()
 })
 
@@ -109,10 +124,14 @@ test('Clear completed removes all done items', async ({ page }) => {
   await addItem(page, 'Done B')
 
   await itemByText(page, 'Done A').getByRole('checkbox').check()
+  await page.waitForTimeout(1000)
   await itemByText(page, 'Done B').getByRole('checkbox').check()
+  await page.waitForTimeout(1000)
 
   await filterButton(page, 'Completed').click()
+  await page.waitForTimeout(1000)
   await page.getByRole('button', { name: 'Clear completed' }).click()
+  await page.waitForTimeout(1000)
 
   // All items were completed and cleared, so the list is fully empty.
   await expect(page.getByText('No items yet — add one above.')).toBeVisible()

@@ -1,5 +1,11 @@
 import { test as base, chromium, expect } from '@playwright/test'
 import path from 'node:path'
+import { execSync } from 'node:child_process'
+
+const playwrightClientVersion = execSync('npx playwright --version')
+  .toString()
+  .trim()
+  .split(' ')[1]
 
 const BROWSER_NAME_MAP = {
   chrome: 'Chrome',
@@ -29,6 +35,7 @@ const buildCapabilities = (projectName, testName) => {
       video: true,
       console: true,
       tunnel: false,
+      playwrightClientVersion,
     },
   }
 }
@@ -56,6 +63,7 @@ export const test = base.extend({
       wsEndpoint: `wss://cdp.lambdatest.com/playwright?capabilities=${encodeURIComponent(
         JSON.stringify(capabilities),
       )}`,
+      timeout: 60_000,
     })
 
     const ltPage = await browser.newPage(testInfo.project.use)

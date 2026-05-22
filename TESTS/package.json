@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "playwright test --project=chromium",
-    "test:headed": "playwright test --project=chromium --headed",
+    "test:headed": "playwright test --project=chromium --headed --workers=1",
+    "test:ui": "playwright test --project=chromium --ui",
     "test:debug": "playwright test --project=chromium --debug",
     "test:lt": "playwright test --project='chrome:latest:Windows 11@lambdatest'",
     "report": "playwright show-report"
