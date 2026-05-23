@@ -18,7 +18,9 @@ const itemByText = (page, text) =>
   page.getByRole('listitem').filter({ hasText: text })
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('./')
+  // Use domcontentloaded — LambdaTest's network capture can keep connections
+  // open long enough that the default 'load' event never fires.
+  await page.goto('./', { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1000)
 })
 

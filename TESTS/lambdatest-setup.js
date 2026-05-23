@@ -37,6 +37,8 @@ const buildCapabilities = (projectName, testName) => {
       network: true,
       video: true,
       console: true,
+      terminal: true,
+      accessibility: false,
       tunnel: false,
       playwrightClientVersion,
     },
@@ -86,13 +88,7 @@ export const test = base.extend({
         timeout: 90_000,
       })
 
-      // Critical: pass baseURL (and other context options) through, otherwise
-      // page.goto('./') has nothing to resolve against.
-      const ltContext = await browser.newContext({
-        baseURL,
-        viewport,
-        userAgent,
-      })
+      const ltContext = await browser.newContext({ baseURL })
       const ltPage = await ltContext.newPage()
 
       try {

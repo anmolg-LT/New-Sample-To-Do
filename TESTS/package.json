@@ -12,6 +12,11 @@
     "report": "playwright show-report"
   },
   "devDependencies": {
-    "@playwright/test": "^1.60.0"
+    "@playwright/test": "~1.55.0"
+  },
+  "dependencies": {
+    "@lambdatest/playwright-driver": "^1.0.7",
+    "@lambdatest/smartui-cli": "^4.1.70",
+    "playwright": "^1.60.0"
   }
 }

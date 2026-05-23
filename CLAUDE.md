@@ -60,14 +60,25 @@ to `execSync('npx playwright --version')` — Playwright imports the setup file
 once per worker, and concurrent npx invocations can deadlock on the npm cache
 lock and hang the entire runner with no error.
 
-## Known landmine: Playwright + Node 25
+## Known landmines: Playwright version
 
-Playwright **< 1.51** uses an ESM loader hook that hangs forever on Node 25
-during test discovery — no error, just silence after the channel `__create__`
-events. Symptoms: `npx playwright test --list` hangs, `--project=chromium`
-hangs, the local probe (`node probe-full.mjs`) still works because it doesn't
-go through the test-runner loader. Fix is to keep `@playwright/test` ≥ 1.51
-(the project is pinned to `^1.60.0`). Don't downgrade.
+`@playwright/test` is pinned to `~1.55.0` — that range is load-bearing for two
+opposing reasons, **don't widen it**:
+
+- **Floor (≥ 1.51):** earlier versions use an ESM loader hook that hangs
+  forever on Node 25 during test discovery. Symptoms: `npx playwright test
+  --list` hangs, `--project=chromium` hangs, the standalone probe still works
+  (it doesn't go through the test-runner loader).
+- **Ceiling (≤ 1.55):** LambdaTest's CDP endpoint (`wss://cdp.lambdatest.com/
+  playwright`) currently stalls the WebSocket handshake for Playwright clients
+  ≥ 1.60 — no error, the `chromium.connect()` call just never returns.
+  Symptoms: a LambdaTest session shows up on the dashboard with status
+  "Running" but stays empty forever; the runner times out in `beforeEach`.
+
+If you need to bump Playwright, **first** confirm against LambdaTest's
+published support matrix at
+`https://www.lambdatest.com/support/docs/playwright-supported-versions/` and
+verify with `node probe-full.mjs` before changing the pin.
 
 ## Deploy
 

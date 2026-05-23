@@ -80,5 +80,8 @@ LambdaTest dashboard.
 
 ## Requirements
 
-- Node 20+ (Node 25 also works as of `@playwright/test` ≥ 1.51 — older
-  Playwright versions hang silently on Node 25's ESM loader).
+- Node 20+. Node 25 works too, but only with `@playwright/test` ≥ 1.51 —
+  older versions hang silently on Node 25's ESM loader.
+- `@playwright/test` is pinned to `~1.55.0` and that ceiling is intentional:
+  LambdaTest's CDP endpoint currently stalls the WebSocket handshake for
+  Playwright clients ≥ 1.60. See `CLAUDE.md` before bumping.
