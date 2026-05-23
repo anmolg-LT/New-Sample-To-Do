@@ -24,9 +24,9 @@ export default defineConfig({
       //           "pw-firefox:latest:Windows 11@lambdatest"
       name: 'chrome:latest:Windows 11@lambdatest',
       use: {},
-      // Cloud browser provisioning + remote actions are slow; give each test
-      // 2 minutes total.
-      timeout: 120_000,
+      // Cloud browser provisioning + remote actions are slow. The fixture also
+      // calls testInfo.setTimeout(180_000) per test as a safety net.
+      timeout: 180_000,
     },
   ],
 })
