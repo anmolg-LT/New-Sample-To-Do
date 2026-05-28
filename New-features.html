@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sample To-Do — Proposed Features for UI Testing</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --card: #ffffff;
+    --ink: #1f2330;
+    --muted: #5b6478;
+    --accent: #4f46e5;
+    --accent-soft: #eef2ff;
+    --border: #e3e6ee;
+    --pill: #f1f3f9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 48px 24px 80px; }
+  header.page {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  header.page h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+  }
+  header.page p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  section { margin-top: 36px; }
+  section > h2 {
+    font-size: 18px;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  section > h2::before {
+    content: "";
+    width: 6px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 3px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 14px;
+  }
+  .feature {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    transition: border-color .15s, transform .15s;
+  }
+  .feature:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .feature h3 {
+    margin: 0 0 6px;
+    font-size: 15px;
+  }
+  .feature p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+  .shortlist {
+    background: var(--accent-soft);
+    border: 1px solid #d8dcff;
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-top: 36px;
+  }
+  .shortlist h2 {
+    margin: 0 0 8px;
+    font-size: 17px;
+    color: var(--accent);
+  }
+  .shortlist h2::before { display: none; }
+  .shortlist ul {
+    margin: 10px 0 0;
+    padding-left: 20px;
+    font-size: 14px;
+  }
+  .shortlist li { margin-bottom: 4px; }
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .pill {
+    background: var(--pill);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 11.5px;
+    font-weight: 500;
+  }
+  footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <h1>Proposed Features for the Sample To-Do App</h1>
+    <p>Small, self-contained additions that each unlock a distinct slice of UI testing in Playwright. No new dependencies or architecture changes required.</p>
+  </header>
+
+  <section>
+    <h2>Forms &amp; validation</h2>
+    <div class="grid">
+      <div class="feature">
+        <h3>Inline edit on double-click</h3>
+        <p>Tests for keyboard (Enter saves, Esc cancels), blur-to-save, empty-discard, focus management.</p>
+        <div class="pills"><span class="pill">keyboard</span><span class="pill">focus</span></div>
+      </div>
+      <div class="feature">
+        <h3>Max length + live char counter</h3>
+        <p>Tests for boundary input, error styling appearing/disappearing, submit being blocked.</p>
+        <div class="pills"><span class="pill">validation</span><span class="pill">boundary</span></div>
+      </div>
+      <div class="feature">
+        <h3>Duplicate detection warning</h3>
+        <p>Tests for a non-blocking inline message that shows then clears as the user types.</p>
+        <div class="pills"><span class="pill">inline-state</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>State &amp; interaction patterns</h2>
+    <div class="grid">
+      <div class="feature">
+        <h3>Toggle-all checkbox in list header</h3>
+        <p>Tests for tri-state (none/some/all checked) and interaction with the active filter — toggles only <em>visible</em> items.</p>
+        <div class="pills"><span class="pill">tri-state</span><span class="pill">filter-aware</span></div>
+      </div>
+      <div class="feature">
+        <h3>Bulk select + bulk delete</h3>
+        <p>Tests for multi-row checkbox state, action bar appearing when ≥1 selected, select-all behavior.</p>
+        <div class="pills"><span class="pill">multi-select</span></div>
+      </div>
+      <div class="feature">
+        <h3>Drag-to-reorder</h3>
+        <p>Tests for mouse drag, keyboard reorder (ArrowUp/Down with Space), order persistence in sessionStorage.</p>
+        <div class="pills"><span class="pill">drag</span><span class="pill">a11y</span></div>
+      </div>
+      <div class="feature">
+        <h3>Undo toast after delete</h3>
+        <p>Tests for timed dismissal, undo restoring the item, multiple rapid deletes stacking correctly.</p>
+        <div class="pills"><span class="pill">timers</span><span class="pill">async</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>New data fields</h2>
+    <div class="grid">
+      <div class="feature">
+        <h3>Priority (Low/Med/High) dropdown</h3>
+        <p>Tests for default value, sort-by-priority, badge rendering, filter combinations.</p>
+        <div class="pills"><span class="pill">dropdown</span></div>
+      </div>
+      <div class="feature">
+        <h3>Tags / category chips</h3>
+        <p>Tests for chip creation, removal with Backspace, filtering by tag, color class assertions.</p>
+        <div class="pills"><span class="pill">chips</span><span class="pill">keyboard</span></div>
+      </div>
+      <div class="feature">
+        <h3>Optional notes field (expand/collapse row)</h3>
+        <p>Tests for accordion behavior, only-one-open variant, aria-expanded.</p>
+        <div class="pills"><span class="pill">accordion</span><span class="pill">a11y</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Discovery &amp; navigation</h2>
+    <div class="grid">
+      <div class="feature">
+        <h3>Search box that narrows the list</h3>
+        <p>Tests for debouncing, case-insensitive match, empty-state copy, interplay with filter tabs.</p>
+        <div class="pills"><span class="pill">debounce</span></div>
+      </div>
+      <div class="feature">
+        <h3>Sort menu (added / due / alphabetical)</h3>
+        <p>Tests for sort persistence, ascending/descending toggle, stable ordering of ties.</p>
+        <div class="pills"><span class="pill">sort</span></div>
+      </div>
+      <div class="feature">
+        <h3>Pagination or “Load more” at N items</h3>
+        <p>Tests for page boundaries, count updates, scroll position retention.</p>
+        <div class="pills"><span class="pill">pagination</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Modals &amp; overlays</h2>
+    <div class="grid">
+      <div class="feature">
+        <h3>Confirm-delete modal</h3>
+        <p>Tests for focus trap, Esc closes, backdrop click, confirm flow, return focus to trigger.</p>
+        <div class="pills"><span class="pill">modal</span><span class="pill">focus-trap</span></div>
+      </div>
+      <div class="feature">
+        <h3>Keyboard shortcuts + “?” help modal</h3>
+        <p>Tests for <code>/</code> focusing input, <code>n</code> new task, modal open/close, shortcut display.</p>
+        <div class="pills"><span class="pill">shortcuts</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Cross-cutting UI</h2>
+    <div class="grid">
+      <div class="feature">
+        <h3>Dark mode toggle</h3>
+        <p>Tests for class on <code>&lt;html&gt;</code>, sessionStorage persistence, system-preference default.</p>
+        <div class="pills"><span class="pill">theme</span><span class="pill">prefers-color-scheme</span></div>
+      </div>
+      <div class="feature">
+        <h3>Toast / snackbar system</h3>
+        <p>Reusable for undo, errors, "task added" — tests for stacking, auto-dismiss timers, manual close.</p>
+        <div class="pills"><span class="pill">timers</span><span class="pill">stacking</span></div>
+      </div>
+      <div class="feature">
+        <h3>Empty-state illustrations per filter</h3>
+        <p>Tests for which message renders when (no items vs. no active vs. no completed).</p>
+        <div class="pills"><span class="pill">conditional-render</span></div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="shortlist">
+    <h2>Highest test-value-per-LOC shortlist</h2>
+    <p>If you want to pick a small batch that maximizes coverage variety:</p>
+    <ul>
+      <li>Inline edit on double-click</li>
+      <li>Toggle-all checkbox</li>
+      <li>Undo toast after delete</li>
+      <li>Search box</li>
+      <li>Priority dropdown</li>
+      <li>Confirm-delete modal</li>
+    </ul>
+    <p style="margin-top:10px; font-size:13.5px;">Together they cover keyboard events, async timers, multi-element state, dropdowns, modals/focus traps, and filter interactions — the things real Playwright suites stumble on.</p>
+  </aside>
+
+  <footer>
+    Generated for the <strong>Sample-To-Do</strong> project. None of these require new npm dependencies.
+  </footer>
+
+</div>
+</body>
+</html>
