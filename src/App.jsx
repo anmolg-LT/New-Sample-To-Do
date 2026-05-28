@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
 const STORAGE_KEY = 'sample-todo-items'
 const FILTERS = ['All', 'Active', 'Completed']
+const UNDO_DURATION_MS = 5000
 
 const formatDate = (iso) => {
   const [y, m, d] = iso.split('-').map(Number)
@@ -28,10 +29,33 @@ export default function App() {
   const [input, setInput] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [filter, setFilter] = useState('All')
+  const [editingId, setEditingId] = useState(null)
+  const [editingText, setEditingText] = useState('')
+  const [undo, setUndo] = useState(null)
+  const editInputRef = useRef(null)
+  const toggleAllRef = useRef(null)
 
   useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
   }, [todos])
+
+  useEffect(() => {
+    if (editingId !== null && editInputRef.current) {
+      editInputRef.current.focus()
+      editInputRef.current.select()
+    }
+  }, [editingId])
+
+  useEffect(() => {
+    if (!undo) return
+    const remaining = undo.expiresAt - Date.now()
+    if (remaining <= 0) {
+      setUndo(null)
+      return
+    }
+    const timer = setTimeout(() => setUndo(null), remaining)
+    return () => clearTimeout(timer)
+  }, [undo])
 
   const addTodo = (e) => {
     e.preventDefault()
@@ -50,11 +74,61 @@ export default function App() {
   }
 
   const deleteTodo = (id) => {
+    const index = todos.findIndex(t => t.id === id)
+    if (index === -1) return
+    const removed = todos[index]
     setTodos(todos.filter(t => t.id !== id))
+    setUndo({
+      todo: removed,
+      index,
+      expiresAt: Date.now() + UNDO_DURATION_MS,
+    })
+  }
+
+  const restoreUndo = () => {
+    if (!undo) return
+    const { todo, index } = undo
+    setTodos(prev => {
+      const next = [...prev]
+      next.splice(Math.min(index, next.length), 0, todo)
+      return next
+    })
+    setUndo(null)
   }
 
   const clearCompleted = () => {
     setTodos(todos.filter(t => !t.done))
+  }
+
+  const startEdit = (todo) => {
+    setEditingId(todo.id)
+    setEditingText(todo.text)
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditingText('')
+  }
+
+  const commitEdit = () => {
+    if (editingId === null) return
+    const next = editingText.trim()
+    if (!next) {
+      cancelEdit()
+      return
+    }
+    setTodos(todos.map(t => t.id === editingId ? { ...t, text: next } : t))
+    cancelEdit()
+  }
+
+  const handleEditKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      commitEdit()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      cancelEdit()
+    }
   }
 
   const remaining = todos.filter(t => !t.done).length
@@ -67,6 +141,22 @@ export default function App() {
   })
 
   const counts = { All: todos.length, Active: remaining, Completed: completed }
+
+  const visibleDone = visibleTodos.filter(t => t.done).length
+  const allVisibleDone = visibleTodos.length > 0 && visibleDone === visibleTodos.length
+  const someVisibleDone = visibleDone > 0 && visibleDone < visibleTodos.length
+
+  useEffect(() => {
+    if (toggleAllRef.current) {
+      toggleAllRef.current.indeterminate = someVisibleDone
+    }
+  })
+
+  const toggleAll = () => {
+    const targetDone = !allVisibleDone
+    const visibleIds = new Set(visibleTodos.map(t => t.id))
+    setTodos(todos.map(t => visibleIds.has(t.id) ? { ...t, done: targetDone } : t))
+  }
 
   return (
     <div className="layout">
@@ -126,29 +216,71 @@ export default function App() {
             <button type="submit">Add</button>
           </form>
 
+          {visibleTodos.length > 0 && (
+            <div className="list-toolbar">
+              <label className="toggle-all">
+                <input
+                  ref={toggleAllRef}
+                  type="checkbox"
+                  checked={allVisibleDone}
+                  onChange={toggleAll}
+                  aria-label="Toggle all visible tasks"
+                />
+                <span>
+                  {allVisibleDone ? 'Mark all as active' : 'Mark all as complete'}
+                </span>
+              </label>
+              <span className="toolbar-count" aria-label="Completed of visible">
+                {visibleDone} / {visibleTodos.length}
+              </span>
+            </div>
+          )}
+
           <ul className="todo-list">
             {visibleTodos.map(todo => (
               <li key={todo.id} className={todo.done ? 'done' : ''}>
-                <label>
+                {editingId === todo.id ? (
                   <input
-                    type="checkbox"
-                    checked={todo.done}
-                    onChange={() => toggleTodo(todo.id)}
+                    ref={editInputRef}
+                    type="text"
+                    className="edit-input"
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    onBlur={commitEdit}
+                    onKeyDown={handleEditKeyDown}
+                    aria-label="Edit task"
                   />
-                  <span className="todo-text">{todo.text}</span>
-                </label>
-                {todo.dueDate && (
-                  <span className={`due-date ${isOverdue(todo) ? 'overdue' : ''}`}>
-                    {formatDate(todo.dueDate)}
-                  </span>
+                ) : (
+                  <>
+                    <div className="todo-main">
+                      <input
+                        type="checkbox"
+                        checked={todo.done}
+                        onChange={() => toggleTodo(todo.id)}
+                        aria-label={`Mark "${todo.text}" complete`}
+                      />
+                      <span
+                        className="todo-text"
+                        onDoubleClick={() => startEdit(todo)}
+                        title="Double-click to edit"
+                      >
+                        {todo.text}
+                      </span>
+                    </div>
+                    {todo.dueDate && (
+                      <span className={`due-date ${isOverdue(todo) ? 'overdue' : ''}`}>
+                        {formatDate(todo.dueDate)}
+                      </span>
+                    )}
+                    <button
+                      className="delete"
+                      onClick={() => deleteTodo(todo.id)}
+                      aria-label="Delete"
+                    >
+                      ×
+                    </button>
+                  </>
                 )}
-                <button
-                  className="delete"
-                  onClick={() => deleteTodo(todo.id)}
-                  aria-label="Delete"
-                >
-                  ×
-                </button>
               </li>
             ))}
           </ul>
@@ -173,6 +305,17 @@ export default function App() {
             </div>
           )}
         </div>
+
+        {undo && (
+          <div className="undo-toast" role="status" aria-live="polite">
+            <span className="undo-message">
+              Deleted “{undo.todo.text}”
+            </span>
+            <button className="undo-btn" onClick={restoreUndo}>
+              Undo
+            </button>
+          </div>
+        )}
       </main>
     </div>
   )
