@@ -1,9 +1,21 @@
 import { useState, useEffect, useRef } from 'react'
+import Forms from './Forms.jsx'
 import './App.css'
 
 const STORAGE_KEY = 'sample-todo-items'
 const FILTERS = ['All', 'Active', 'Completed']
 const UNDO_DURATION_MS = 5000
+
+// Vite injects the deploy base ('/New-Sample-To-Do/' in prod, '/' in dev).
+const BASE = import.meta.env.BASE_URL
+
+// Map the current pathname to a route. Anything under <base>/Forms is the
+// forms view; everything else is the tasks view.
+const routeFromPath = () => {
+  const path = window.location.pathname
+  const rest = (path.startsWith(BASE) ? path.slice(BASE.length) : path).replace(/^\/+/, '')
+  return rest.toLowerCase().startsWith('forms') ? 'forms' : 'tasks'
+}
 
 const formatDate = (iso) => {
   const [y, m, d] = iso.split('-').map(Number)
@@ -32,8 +44,21 @@ export default function App() {
   const [editingId, setEditingId] = useState(null)
   const [editingText, setEditingText] = useState('')
   const [undo, setUndo] = useState(null)
+  const [route, setRoute] = useState(routeFromPath)
   const editInputRef = useRef(null)
   const toggleAllRef = useRef(null)
+
+  useEffect(() => {
+    const onPop = () => setRoute(routeFromPath())
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  const navigate = (target) => {
+    const url = target === 'forms' ? `${BASE}Forms` : BASE
+    window.history.pushState({}, '', url)
+    setRoute(target)
+  }
 
   useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
@@ -165,17 +190,37 @@ export default function App() {
           <span className="logo">✓</span>
           <span className="brand-name">Sample To-Do</span>
         </div>
-        <div className="topbar-stats">
-          <span className="stat">
-            <strong>{remaining}</strong> remaining
-          </span>
-          <span className="stat-divider" />
-          <span className="stat">
-            <strong>{todos.length}</strong> total
-          </span>
-        </div>
+        <nav className="topbar-nav">
+          <button
+            className={`nav-link ${route === 'tasks' ? 'active' : ''}`}
+            onClick={() => navigate('tasks')}
+          >
+            Tasks
+          </button>
+          <button
+            className={`nav-link ${route === 'forms' ? 'active' : ''}`}
+            onClick={() => navigate('forms')}
+          >
+            Forms
+          </button>
+        </nav>
+        {route === 'tasks' && (
+          <div className="topbar-stats">
+            <span className="stat">
+              <strong>{remaining}</strong> remaining
+            </span>
+            <span className="stat-divider" />
+            <span className="stat">
+              <strong>{todos.length}</strong> total
+            </span>
+          </div>
+        )}
       </header>
 
+      {route === 'forms' ? (
+        <Forms />
+      ) : (
+        <>
       <aside className="sidebar">
         <nav className="filters">
           <p className="sidebar-label">Filters</p>
@@ -317,6 +362,8 @@ export default function App() {
           </div>
         )}
       </main>
+        </>
+      )}
     </div>
   )
 }
